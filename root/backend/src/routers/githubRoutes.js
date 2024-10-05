@@ -17,11 +17,14 @@ admin.initializeApp({
 
 const bucket = admin.storage().bucket();
 
+// GitHub token (add your GitHub token here)
+const token = "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"; // Replace with your GitHub token
+
 // Utility function to convert GitHub URL to API URL
 const getApiPathFromUrl = (url) => {
   const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)\.git/);
   if (match) {
-    return `https://api.github.com/repos/${match[1]}/${match[2]}/contents`;
+    return { owner: match[1], repo: match[2] };
   }
   return null;
 };
@@ -29,17 +32,17 @@ const getApiPathFromUrl = (url) => {
 // Fetch repository files from GitHub
 router.get("/repo-files", async (req, res) => {
   const { repoUrl } = req.query;
-  const token = "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"; // Replace with your GitHub token
 
   if (!repoUrl) {
     return res.status(400).json({ message: "Repository URL is required" });
   }
 
-  const apiUrl = getApiPathFromUrl(repoUrl);
-
-  if (!apiUrl) {
+  const repoInfo = getApiPathFromUrl(repoUrl);
+  if (!repoInfo) {
     return res.status(400).json({ message: "Invalid repository URL" });
   }
+
+  const apiUrl = `https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}/contents`;
 
   try {
     const response = await axios.get(apiUrl, {
@@ -59,13 +62,10 @@ router.get("/repo-files", async (req, res) => {
 // Route to save files to Firebase Storage and update MongoDB with folder URL
 router.post("/save-to-firebase", async (req, res) => {
   const { files, repoName, projectId } = req.body;
-  const token = "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"; // Replace with your GitHub token
 
   if (!projectId) {
     return res.status(400).json({ message: "Project ID is required" });
   }
-
-  console.log("print text 1");
 
   try {
     // Loop through each file and upload to Firebase Storage
@@ -76,9 +76,6 @@ router.post("/save-to-firebase", async (req, res) => {
         continue; // Skip this file
       }
 
-      // Log the URL being requested
-      console.log(`Fetching file from URL: ${file.download_url}`);
-
       // Download file content from GitHub using arraybuffer response type
       const fileResponse = await axios.get(file.download_url, {
         headers: {
@@ -86,8 +83,6 @@ router.post("/save-to-firebase", async (req, res) => {
         },
         responseType: "arraybuffer", // Ensure raw data is fetched
       });
-
-      console.log("print text 2");
 
       // Convert the raw data into a buffer
       const buffer = Buffer.from(fileResponse.data);
@@ -99,31 +94,23 @@ router.post("/save-to-firebase", async (req, res) => {
       });
     }
 
-    console.log("print text 3");
-
     // Construct the folder URL for the repository in Firebase Storage
     const folderUrl = `https://storage.googleapis.com/${bucket.name}/${repoName}/`;
 
-    // Log repoName and folderUrl
-    console.log(`Updating MongoDB for repo: ${repoName}, URL: ${folderUrl}`);
-
-    // Find and update the relevant project in MongoDB
+    // Update MongoDB with folder URL
     const project = await Project.findByIdAndUpdate(
-      projectId, // Find by projectId
-      { repositoryUrl: folderUrl }, // Update the repository URL
-      { new: true } // Return the updated document
+      projectId,
+      { repositoryUrl: folderUrl },
+      { new: true }
     );
 
     if (project) {
-      console.log("MongoDB update success", project); // Log the updated project
-
       res.status(200).json({
         message:
           "Files successfully saved to Firebase Storage and repositoryUrl updated",
         folderUrl,
       });
     } else {
-      console.log(`Project with ID: ${projectId} not found in MongoDB`);
       res.status(404).json({ message: "Project not found in MongoDB" });
     }
   } catch (error) {
@@ -133,5 +120,53 @@ router.post("/save-to-firebase", async (req, res) => {
     });
   }
 });
+
+
+// New route to fetch commit count, author names, and avatar URLs
+router.get("/commit-info", async (req, res) => {
+  const { repoUrl } = req.query;
+
+  if (!repoUrl) {
+    return res.status(400).json({ message: "Repository URL is required" });
+  }
+
+  const repoInfo = getApiPathFromUrl(repoUrl);
+  if (!repoInfo) {
+    return res.status(400).json({ message: "Invalid repository URL" });
+  }
+
+  const apiUrl = `https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}/commits`;
+
+  try {
+    const response = await axios.get(apiUrl, {
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: "application/vnd.github.v3+json",
+      },
+    });
+
+    const commits = response.data;
+
+    // Get the total number of commits
+    const commitCount = commits.length;
+
+    // Extracting necessary author information for each commit
+    const authorInfo = commits.map((commit) => {
+      return {
+        committerName: commit.committer ? commit.committer.login : "Unknown",
+        numberOfCommits: commitCount,
+        authorEmail: commit.committer ? commit.committer.email : "No email available",
+        createdDate: commit.commit.author.date,
+        organizations: commit.author ? commit.author.login : "N/A", // Change this line based on how you want to get organization data
+      };
+    });
+
+    res.status(200).json({ commitCount, authorInfo });
+  } catch (error) {
+    console.error("Error fetching commit info:", error);
+    res.status(500).json({ message: "Failed to fetch commit info" });
+  }
+});
+
 
 module.exports = router;

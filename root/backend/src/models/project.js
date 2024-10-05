@@ -8,6 +8,7 @@ const projectSchema = new mongoose.Schema({
   repositoryName: { type: String, required: true }, // Repository name field
   repositoryUrl: { type: String },
   filePath: { type: String }, // Single file path field
+  clonedRepoUrl: { type: String},
 });
 
 const Project = mongoose.model('Project', projectSchema);

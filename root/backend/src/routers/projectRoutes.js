@@ -141,6 +141,37 @@ router.put('/:id/add-path', async (req, res) => {
     console.error('Error adding file path:', error);
     res.status(500).json({ message: 'Failed to add file path' });
   }
+}
+);
+
+router.put('/:id/add-clonedRepoUrl', async (req, res) => {
+  try {
+    const projectId = req.params.id; // Extract project ID from URL
+    const { clonedRepoUrl } = req.body; // Extract clonedRepoUrl from request body
+
+    if (!clonedRepoUrl) {
+      return res.status(400).json({ message: 'clonedRepoUrl is required' });
+    }
+
+    // Find the project and update the clonedRepoUrl field
+    const updatedProject = await Project.findByIdAndUpdate(
+      projectId,
+      { clonedRepoUrl }, // Set the clonedRepoUrl field directly
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedProject) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    res.status(200).json({
+      message: 'clonedRepoUrl added successfully!',
+      project: updatedProject,
+    });
+  } catch (error) {
+    console.error('Error adding clonedRepoUrl:', error);
+    res.status(500).json({ message: 'Failed to add clonedRepoUrl' });
+  }
 });
 
 

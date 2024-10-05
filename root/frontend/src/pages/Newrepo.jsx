@@ -44,6 +44,7 @@ const Newrepo = () => {
       );
       const repoName = repoNameMatch ? repoNameMatch[2] : "unknown";
 
+      // Save files to Firebase
       const response = await fetch(
         "http://localhost:5000/api/github/save-to-firebase",
         {
@@ -51,19 +52,36 @@ const Newrepo = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ files, repoName, projectId }), // Use projectId
+          body: JSON.stringify({ files, repoName, projectId }),
         }
       );
 
-      if (response.ok) {
-        console.log("Files saved to Firebase and repository URL updated");
-        navigate("/displayproj");
-      } else {
+      if (!response.ok) {
         throw new Error("Failed to save files to Firebase");
       }
+
+      // After saving to Firebase, update the cloned repository URL
+      const clonedRepoUrl = repoUrl; // Get the cloned repo URL
+      const updateResponse = await fetch(
+        `http://localhost:5000/api/projects/${projectId}/add-clonedRepoUrl`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ clonedRepoUrl }),
+        }
+      );
+
+      if (!updateResponse.ok) {
+        throw new Error("Failed to update cloned repository URL");
+      }
+
+      console.log("Files saved to Firebase and repository URL updated");
+      navigate("/displayproj");
     } catch (error) {
-      setError("Error saving files to Firebase. Please try again.");
-      console.error("Error saving files to Firebase:", error);
+      setError("Error saving files to Firebase or updating the repository URL. Please try again.");
+      console.error("Error saving files or updating clonedRepoUrl:", error);
     } finally {
       setLoading(false);
     }

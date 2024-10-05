@@ -159,9 +159,9 @@ const Displayproj = () => {
     <div className="container mx-auto p-4 relative bg-gradient-to-r from-blue-100 to-purple-100 min-h-screen p-4">
       <div className="flex justify-between mb-12 items-center">
         {/* Left side content */}
-        <div className="flex space-x-4 items-center">
+        <div className="flex space-x-6 items-center">
           {/* Search input */}
-          <div className="relative w-1/4">
+          <div className="relative w-1/2">
             <input
               type="text"
               placeholder="Search projects..."
@@ -174,13 +174,13 @@ const Displayproj = () => {
           </div>
 
           {/* Sort by empty projects button */}
-          <button className="flex items-center px-4 py-2 border rounded-full bg-[#41889e] text-white hover:bg-[#357a8d] focus:outline-none">
+          <button className="flex relative w-1/2 items-center px-4 py-2 border rounded-full bg-[#41889e] text-white hover:bg-[#357a8d] focus:outline-none">
             <FaSort className="mr-2" />
             Sort By Empty Projects
           </button>
 
           {/* Project count */}
-          <span className="flex items-center text-[#41889e] font-semibold">
+          <span className="flex   text-[#41889e] font-semibold">
             {filteredProjects.length} Project
             {filteredProjects.length !== 1 ? "s" : ""}
           </span>
