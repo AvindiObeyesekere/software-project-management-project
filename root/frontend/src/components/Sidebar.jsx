@@ -9,6 +9,9 @@ import {
   FaTasks,
 } from "react-icons/fa";
 import { MdChevronLeft, MdChevronRight, MdTask } from "react-icons/md";
+import { AiFillFileAdd } from "react-icons/ai";
+import { SiFiles } from "react-icons/si";
+import { RiDashboardFill } from "react-icons/ri";
 import logo from "../assets/logo.png";
 import profile from "../assets/profile.png";
 
@@ -47,41 +50,38 @@ export default function Sidebar({ children }) {
 
           <SidebarContext.Provider value={{ expanded }}>
             <ul className="flex-1 px-3 space-y-2">
-              <SidebarItem icon={<FaHome />} text="Home" to="/" />
+              
+            <SidebarItem icon={<FaHome />} text="Home" to="/" />
               <SidebarItem
                 icon={<FaBell />}
                 text="Notifications"
                 to="/notifications"
                 alert
               />
-              <SidebarItem icon={<FaCog />} text="Settings" to="/settings" />
-              <SidebarItem icon={<FaQuestionCircle />} text="Help" to="/help" />
-              <SidebarItem icon={<MdTask />} text="AddTask" to="/task/add" />
+              
               <SidebarItem
                 icon={<FaTasks />}
                 text="ShowAllTasks"
                 to="/task/showAll"
               />
+              
               <SidebarItem
-                icon={<FaEnvelope />}
-                text="Quality Gate"
-                to="/analize/task/status"
-              />
-              <SidebarItem
-                icon={<FaEnvelope />}
+                icon={<AiFillFileAdd />}
                 text="Create Project"
                 to="/createrepo"
               />
               <SidebarItem
-                icon={<FaEnvelope />}
+                icon={<SiFiles />}
                 text="Display Projects"
                 to="/displayproj"
               />
               <SidebarItem
-                icon={<FaEnvelope />}
+                icon={<RiDashboardFill />}
                 text="Repo DashBoard"
                 to="/repodashboard"
               />
+              <SidebarItem icon={<FaCog />} text="Settings" to="/settings" />
+              <SidebarItem icon={<FaQuestionCircle />} text="Help" to="/help" />
               <SidebarItem
                 icon={<FaSignOutAlt />}
                 text="LogOut"

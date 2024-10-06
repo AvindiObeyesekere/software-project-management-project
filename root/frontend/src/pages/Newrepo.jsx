@@ -8,12 +8,27 @@ const Newrepo = () => {
   const [repoCloned, setRepoCloned] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [urlError, setUrlError] = useState(null); // State for URL validation error
   const navigate = useNavigate();
   const { projectId } = useParams(); // Retrieve projectId from URL
 
+  const validateUrl = (url) => {
+    // Regular expression to match a valid GitHub repo URL (e.g., https://github.com/username/repo.git)
+    const githubUrlRegex = /^https:\/\/github\.com\/[^\/]+\/[^\/]+\.git$/;
+    return githubUrlRegex.test(url);
+  };
+
   const handleClone = async () => {
+    // Check if the URL is valid before proceeding
+    if (!validateUrl(repoUrl)) {
+      setUrlError("Invalid URL format. The URL should be in this format: https://github.com/username/repo.git");
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setUrlError(null); // Clear URL validation error
+
     try {
       const encodedUrl = encodeURIComponent(repoUrl);
       const response = await fetch(
@@ -80,7 +95,9 @@ const Newrepo = () => {
       console.log("Files saved to Firebase and repository URL updated");
       navigate("/displayproj");
     } catch (error) {
-      setError("Error saving files to Firebase or updating the repository URL. Please try again.");
+      setError(
+        "Error saving files to Firebase or updating the repository URL. Please try again."
+      );
       console.error("Error saving files or updating clonedRepoUrl:", error);
     } finally {
       setLoading(false);
@@ -95,7 +112,9 @@ const Newrepo = () => {
           placeholder="Paste repository URL here"
           value={repoUrl}
           onChange={(e) => setRepoUrl(e.target.value)}
-          className="flex-grow p-2 bg-[#f0f9f9] border border-gray-300 rounded-l-md focus:outline-none focus:border-[#41889e] transition-colors duration-300"
+          className={`flex-grow p-2 bg-[#f0f9f9] border ${
+            urlError ? "border-red-500" : "border-gray-300"
+          } rounded-l-md focus:outline-none focus:border-[#41889e] transition-colors duration-300`}
         />
         <button
           onClick={handleClone}
@@ -106,6 +125,13 @@ const Newrepo = () => {
           {loading ? "Cloning..." : "Clone Repository"}
         </button>
       </div>
+
+      {/* Display URL validation error */}
+      {urlError && (
+        <div className="w-1/2 p-4 bg-red-100 border border-red-300 text-red-800 rounded-md">
+          {urlError}
+        </div>
+      )}
 
       {error && (
         <div className="w-1/2 p-4 bg-red-100 border border-red-300 text-red-800 rounded-md">
