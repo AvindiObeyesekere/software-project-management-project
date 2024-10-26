@@ -1,5 +1,5 @@
 # test-spm-project
- only for testing purpus
+ only for testing purpose
 
 
 #Run the project
