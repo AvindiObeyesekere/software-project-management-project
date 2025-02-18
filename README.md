@@ -1,5 +1,5 @@
 # test-spm-project
- only for testing purpose
+Repository management and Metrics Tool
 
 
 #Run the project
